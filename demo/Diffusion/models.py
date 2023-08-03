@@ -76,6 +76,7 @@ def get_path(version, inpaint=False):
         else:
             return "CompVis/stable-diffusion-v1-4"
     elif version == "1.5":
+        return "/workspace/TensorRT_StableDiffusion_ControlNet/weights/dreamshaper_7"
         if inpaint:
             return "runwayml/stable-diffusion-inpainting"
         else:
@@ -271,9 +272,11 @@ class UNet2DConditionControlNetModel(torch.nn.Module):
     def __init__(self, unet, controlnets) -> None:
         super().__init__()
         self.unet = unet
+        # TODO: Make this a Dict[str, torch.nn.Module]
         self.controlnets = controlnets
-        
+
     def forward(self, sample, timestep, encoder_hidden_states, controlnet_conds, controlnet_scales):
+        # TODO: Make these run without order
         for i, (controlnet_cond, conditioning_scale, controlnet) in enumerate(zip(controlnet_conds, controlnet_scales, self.controlnets)):
             down_samples, mid_sample = controlnet(
                 sample,
@@ -323,7 +326,8 @@ class UNet(BaseModel):
         self.with_controlnet = False if controlnets_path is None else True
 
     def get_model(self):
-        model_opts = {'revision': 'fp16', 'torch_dtype': torch.float16} if self.fp16 else {}
+        # model_opts = {'revision': 'fp16', 'torch_dtype': torch.float16} if self.fp16 else {}
+        model_opts = {'revision': 'main', 'torch_dtype': torch.float16} if self.fp16 else {}
         unet = UNet2DConditionModel.from_pretrained(self.path,
             subfolder="unet",
             use_auth_token=self.hf_token,

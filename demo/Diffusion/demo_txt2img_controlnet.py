@@ -78,20 +78,18 @@ if __name__ == "__main__":
                 x = cv2.resize(x, (int(Wt), int(Ht)), interpolation=cv2.INTER_AREA if k < 1 else cv2.INTER_LANCZOS4)
                 return Image.fromarray(x)
         for controlnet in args.controlnet_type:
+            prompt = ["Stormtrooper's lecture"] * args.repeat_prompt
+            negative_prompt = [""] * args.repeat_prompt
+            control_image = load_image("https://huggingface.co/lllyasviel/sd-controlnet-depth/resolve/main/images/stormtrooper.png")
             if controlnet == "canny":
-                prompt = ["Stormtrooper's lecture"] * args.repeat_prompt
-                negative_prompt = [""] * args.repeat_prompt
-                control_image = load_image("https://huggingface.co/lllyasviel/sd-controlnet-depth/resolve/main/images/stormtrooper.png")
                 control_image = controlnet_aux.CannyDetector()(control_image)
-                controlnet_imgs.append(resize(control_image, [args.height, args.width]))
             elif controlnet == "normal":
-                prompt = ["Stormtrooper's lecture"] * args.repeat_prompt
-                negative_prompt = [""] * args.repeat_prompt
-                control_image = load_image("https://huggingface.co/lllyasviel/sd-controlnet-depth/resolve/main/images/stormtrooper.png")
                 control_image = controlnet_aux.NormalBaeDetector.from_pretrained("lllyasviel/Annotators")(control_image)
-                controlnet_imgs.append(resize(control_image, [args.height, args.width]))
+            elif controlnet == "depth":
+                control_image = controlnet_aux.MidasDetector.from_pretrained("lllyasviel/Annotators")(control_image)
             else:
                 raise ValueError(f"You should implement the conditonal image of this controlnet: {controlnet}") 
+            controlnet_imgs.append(resize(control_image, [args.height, args.width]))
 
     # Validate image dimensions
     image_height = args.height

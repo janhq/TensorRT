@@ -8,3 +8,6 @@ build/
 *.vcxproj
 externals/
 **/.DS_Store
+weights/
+.vscode/
+controlnet/

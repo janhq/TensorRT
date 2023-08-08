@@ -606,6 +606,10 @@ class UNetXL(BaseModel):
             model = UNet2DConditionModel.from_pretrained(unet_model_dir).to(self.device)
         return model
 
+    def optimize(self, onnx_graph):
+        print("Skipping ONNX optimization for UnetXL to avoid segmentation fault")
+        return onnx_graph
+
     def get_input_names(self):
         return ['sample', 'timestep', 'encoder_hidden_states', 'text_embeds', 'time_ids']
 

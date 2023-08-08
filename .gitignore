@@ -8,3 +8,4 @@ build/
 *.vcxproj
 externals/
 **/.DS_Store
+sdxl/

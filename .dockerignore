@@ -1,3 +1,10 @@
 /.git*
 build*
 /third_party
+.github/
+.vscode/
+.Dockerfile
+weights/
+controlnet/
+*.md
+sdxl/

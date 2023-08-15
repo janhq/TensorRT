@@ -90,6 +90,20 @@ class Optimizer():
                 name = onnx_graph.graph.node[i].output[j]
                 if "layers" in name:
                     hidden_layers = max(int(name.split(".")[1].split("/")[0]), hidden_layers)
+        
+        # This seems to be uncond_hidden_states, not the encoder_outputs.hidden_states[-2] that compel wanted
+        # So CLIP is returning this:
+        # ```
+        # return (last_hidden_state, pooled_output) + encoder_outputs[1:]
+        # ```
+        # Since manual optimzer already remove everything and just keep the first output, which called text_embeddings ???
+        # so how pytorch is producing the output ?
+        # Ahh thanks to the get_output_names method we provided. But it only seems to provide 1 ouput and torch jit tracer reveal
+        # that we are actually having 2 output. So where is the python code for that ? Hmm
+        # So last_hidden_state == text_embeddings
+        # pooled_output was dropped
+        # So looks like this was the hidden state that we need after all ?? YES you dumb ass
+    
         for i in range(len(onnx_graph.graph.node)):
             for j in range(len(onnx_graph.graph.node[i].output)):
                 if onnx_graph.graph.node[i].output[j] == "/text_model/encoder/layers.{}/Add_1_output_0".format(hidden_layers-1):

@@ -8,3 +8,4 @@ weights/
 controlnet/
 *.md
 sdxl/
+sdxl_orig/

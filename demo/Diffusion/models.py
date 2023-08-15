@@ -302,28 +302,34 @@ class CLIP(BaseModel):
         return model
 
     def get_input_names(self):
-        return ['input_ids']
+        return ['input_ids', 'attention_mask']
 
     def get_output_names(self):
        return ['text_embeddings']
 
     def get_dynamic_axes(self):
-        return {
+        output = {
             'input_ids': {0: 'B'},
+            'attention_mask': {0: 'B'},
             'text_embeddings': {0: 'B'}
         }
+        if 'hidden_states' in self.extra_output_names:
+            output["hidden_states"] = {0: 'B'}
+        return output
 
     def get_input_profile(self, batch_size, image_height, image_width, static_batch, static_shape):
         self.check_dims(batch_size, image_height, image_width)
         min_batch, max_batch, _, _, _, _, _, _, _, _ = self.get_minmax_dims(batch_size, image_height, image_width, static_batch, static_shape)
         return {
-            'input_ids': [(min_batch, self.text_maxlen), (batch_size, self.text_maxlen), (max_batch, self.text_maxlen)]
+            'input_ids': [(min_batch, self.text_maxlen), (batch_size, self.text_maxlen), (max_batch, self.text_maxlen)],
+            'attention_mask': [(min_batch, self.text_maxlen), (batch_size, self.text_maxlen), (max_batch, self.text_maxlen)]
         }
 
     def get_shape_dict(self, batch_size, image_height, image_width):
         self.check_dims(batch_size, image_height, image_width)
         output = {
             'input_ids': (batch_size, self.text_maxlen),
+            'attention_mask': (batch_size, self.text_maxlen),
             'text_embeddings': (batch_size, self.text_maxlen, self.embedding_dim)
         }
         if 'hidden_states' in self.extra_output_names:
@@ -332,7 +338,10 @@ class CLIP(BaseModel):
 
     def get_sample_input(self, batch_size, image_height, image_width):
         self.check_dims(batch_size, image_height, image_width)
-        return torch.zeros(batch_size, self.text_maxlen, dtype=torch.int32, device=self.device)
+        return (
+            torch.zeros(batch_size, self.text_maxlen, dtype=torch.int32, device=self.device),
+            torch.ones(batch_size, self.text_maxlen, dtype=torch.int32, device=self.device),
+        )
 
     def optimize(self, onnx_graph):
         opt = Optimizer(onnx_graph, verbose=self.verbose)
@@ -353,7 +362,7 @@ class CLIP(BaseModel):
         opt.info(self.name + ': finished')
         return opt_onnx_graph
 
-def make_CLIP(version, pipeline, hf_token, device, verbose, max_batch_size, output_hidden_states=False, subfolder="text_encoder"):
+def make_CLIP(version, pipeline, hf_token, device, verbose, max_batch_size, output_hidden_states=True, subfolder="text_encoder"):
     return CLIP(version, pipeline, hf_token, device=device, verbose=verbose, max_batch_size=max_batch_size, embedding_dim=get_clip_embedding_dim(version, pipeline), output_hidden_states=output_hidden_states, subfolder=subfolder)
 
 
@@ -388,6 +397,7 @@ class CLIPWithProj(CLIP):
         self.check_dims(batch_size, image_height, image_width)
         output = {
             'input_ids': (batch_size, self.text_maxlen),
+            'attention_mask': (batch_size, self.text_maxlen),
             'text_embeddings': (batch_size, self.embedding_dim)
         }
         if 'hidden_states' in self.extra_output_names:
@@ -395,7 +405,7 @@ class CLIPWithProj(CLIP):
 
         return output
 
-def make_CLIPWithProj(version, pipeline, hf_token, device, verbose, max_batch_size, subfolder="text_encoder_2", output_hidden_states=False):
+def make_CLIPWithProj(version, pipeline, hf_token, device, verbose, max_batch_size, subfolder="text_encoder_2", output_hidden_states=True):
     return CLIPWithProj(version, pipeline, hf_token, device=device, verbose=verbose, max_batch_size=max_batch_size, subfolder=subfolder, output_hidden_states=output_hidden_states)
 
 class UNet2DConditionControlNetModel(torch.nn.Module):

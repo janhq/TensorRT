@@ -9,3 +9,4 @@ build/
 externals/
 **/.DS_Store
 sdxl/
+sdxl_orig/

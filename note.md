@@ -92,7 +92,7 @@ python3 demo_txt2img.py --version 1.5-meinamix_meinaV11 --hf-token=hf_qRcddqdOSg
 ```
 - Copy the .plan file at `./output/sb15_meinamix_meinaV11` to serve on triton:
 ```
-cp /home/ubuntu/TensorRT_9/output/sb15_meinamix_meinaV11/engine/unet.plan /home/ubuntu/triton_server_sd15/models/unet_menamix_meinaV11/1/unet.plan
+cp /home/ubuntu/TensorRT_9/output/sb15_meinamix_meinaV11/engine/unet.plan /home/ubuntu/triton_server_sd15/models/unet_meinamix_meinaV11/1/unet.plan
 ```
 
 # Controlnet SD1.5

@@ -561,12 +561,14 @@ class UNet(BaseModel):
                 'sample': [(2*min_batch, self.unet_dim, min_latent_height, min_latent_width), 
                            (2*batch_size, self.unet_dim, latent_height, latent_width), 
                            (2*max_batch, self.unet_dim, max_latent_height, max_latent_width)],
+                'timestep': [(1,), (1,), (1,)],
                 'encoder_hidden_states': [(2*min_batch, self.text_maxlen, self.embedding_dim), 
                                           (2*batch_size, self.text_maxlen, self.embedding_dim), 
                                           (2*max_batch, self.text_maxlen, self.embedding_dim)],
                 'images': [(len(self.controlnet), 2*min_batch, 3, min_image_height, min_image_width), 
                           (len(self.controlnet), 2*batch_size, 3, image_height, image_width), 
-                          (len(self.controlnet), 2*max_batch, 3, max_image_height, max_image_width)]
+                          (len(self.controlnet), 2*max_batch, 3, max_image_height, max_image_width)],
+                'controlnet_scales': [(len(self.controlnet),), (len(self.controlnet),), (len(self.controlnet),)],
             }
 
 
@@ -581,10 +583,12 @@ class UNet(BaseModel):
         else:
             return {
                 'sample': (2*batch_size, self.unet_dim, latent_height, latent_width),
+                'timestep': (1,),
                 'encoder_hidden_states': (2*batch_size, self.text_maxlen, self.embedding_dim),
                 'images': (len(self.controlnet), 2*batch_size, 3, image_height, image_width), 
-                'latent': (2*batch_size, 4, latent_height, latent_width)
-                }
+                'latent': (2*batch_size, 4, latent_height, latent_width),
+                'controlnet_scales': (len(self.controlnet),)
+            }
 
     def get_sample_input(self, batch_size, image_height, image_width):
         latent_height, latent_width = self.check_dims(batch_size, image_height, image_width)
@@ -598,7 +602,7 @@ class UNet(BaseModel):
         else:
             return (
                 torch.randn(batch_size, self.unet_dim, latent_height, latent_width, dtype=torch.float32, device=self.device),
-                torch.tensor(999, dtype=torch.float32, device=self.device),
+                torch.tensor([999.], dtype=torch.float32, device=self.device),
                 torch.randn(batch_size, self.text_maxlen, self.embedding_dim, dtype=dtype, device=self.device),
                 torch.randn(len(self.controlnet), batch_size, 3, image_height, image_width, dtype=dtype, device=self.device),
                 torch.randn(len(self.controlnet), dtype=dtype, device=self.device)

@@ -458,7 +458,7 @@ class StableDiffusionPipeline:
 
         text_input_ids_inp = text_input_ids
         # NOTE: output tensor for CLIP must be cloned because it will be overwritten when called again for negative prompt
-        outputs = self.runEngine(encoder, {"input_ids": text_input_ids_inp})
+        outputs = self.runEngine(encoder, {"input_ids": text_input_ids_inp, "attention_mask": torch.ones_like(text_input_ids)})
         text_embeddings = outputs['text_embeddings'].clone()
         if output_hidden_states:
             hidden_states = outputs['hidden_states'].clone()

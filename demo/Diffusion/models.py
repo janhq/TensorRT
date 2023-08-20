@@ -137,6 +137,12 @@ def get_path(version, pipeline, controlnet=None):
             return "runwayml/stable-diffusion-inpainting"
         else:
             return "runwayml/stable-diffusion-v1-5"
+    elif version == "1.5-dreamshaper_7":
+        return "/workspace/TensorRT_SDXL/weights/dreamshaper_7"
+    elif version == "1.5-openjourney_V4":
+        return "/workspace/TensorRT_SDXL/weights/openjourney_V4"
+    elif version == "1.5-meinamix_meinaV11":
+        return "/workspace/TensorRT_SDXL/weights/meinamix_meinaV11"
     elif version == "2.0-base":
         if pipeline.is_inpaint():
             return "stabilityai/stable-diffusion-2-inpainting"
@@ -162,7 +168,7 @@ def get_path(version, pipeline, controlnet=None):
         raise ValueError(f"Incorrect version {version}")
 
 def get_clip_embedding_dim(version, pipeline):
-    if version in ("1.4", "1.5"):
+    if version in ("1.4", "1.5") or version.startswith("1.5"):
         return 768
     elif version in ("2.0", "2.0-base", "2.1", "2.1-base"):
         return 1024
@@ -178,7 +184,7 @@ def get_clipwithproj_embedding_dim(version, pipeline):
         raise ValueError(f"Invalid version {version} + pipeline {pipeline}")
 
 def get_unet_embedding_dim(version, pipeline):
-    if version in ("1.4", "1.5"):
+    if version in ("1.4", "1.5") or version.startswith("1.5"):
         return 768
     elif version in ("2.0", "2.0-base", "2.1", "2.1-base"):
         return 1024
@@ -482,7 +488,10 @@ class UNet(BaseModel):
         self.controlnet = controlnet
 
     def get_model(self, framework_model_dir):
-        model_opts = {'variant': 'fp16', 'torch_dtype': torch.float16} if self.fp16 else {}
+        if self.version.startswith("1.5-"):
+            model_opts = {'torch_dtype': torch.float16} if self.fp16 else {}
+        else:
+            model_opts = {'variant': "fp16", 'torch_dtype': torch.float16} if self.fp16 else {}
         if self.controlnet:
             unet_model = UNet2DConditionModel.from_pretrained(self.path,
                 subfolder="unet",
@@ -507,6 +516,12 @@ class UNet(BaseModel):
                 print(f"[I] Load UNet pytorch model from: {unet_model_dir}")
                 model = UNet2DConditionModel.from_pretrained(unet_model_dir).to(self.device)
         return model
+
+    def optimize(self, onnx_graph):
+        if self.controlnet is not None:
+            print("Skipping ONNX optimization for Unet with controlnet to avoid segmentation fault")
+            return onnx_graph
+        return super().optimize(onnx_graph)
 
     def get_input_names(self):
         if self.controlnet is None:

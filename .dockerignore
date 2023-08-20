@@ -9,3 +9,7 @@ controlnet/
 *.md
 sdxl/
 sdxl_orig/
+weights/
+output/
+models_store_checkpoints/
+models_store_safetensor/

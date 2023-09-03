@@ -127,3 +127,24 @@ python3 demo_controlnet.py --version 1.5-dreamshaper_7 --hf-token=hf_qRcddqdOSga
 ```
 cp /home/ubuntu/TensorRT_9/output/sb15_dreamshaper_7_controlnet_depth/engine/unet.plan /home/ubuntu/triton_server_sd15/models/unet_controlnet_depth/1/unet.plan
 ```
+
+# For SD15 Inpainting
+- Run the image up and convert sd15 inpaint runwayml to tensorrt:
+```
+docker run --gpus device=0 \
+           --ipc=host \
+           --ulimit memlock=-1 \
+           --ulimit stack=67108864 \
+           -v $(pwd)/weights:/workspace/TensorRT_SDXL/weights \
+           -v $(pwd)/output/sd15_inpaint_runwayml/engine:/workspace/TensorRT_SDXL/demo/Diffusion/engine \
+           -v $(pwd)/output/sd15_inpaint_runwayml/onnx:/workspace/TensorRT_SDXL/demo/Diffusion/onnx \
+           -v $(pwd)/output/sd15_inpaint_runwayml/output:/workspace/TensorRT_SDXL/demo/Diffusion/output \
+           -it --rm janresearch.azurecr.io/sdxl_converter:tr23.04-trt8.6.1-nvidiaa6000
+cd demo/Diffusion/
+python3 demo_inpaint.py --version 1.5 --hf-token=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 -v --repeat-prompt 4 "Face of a yellow cat, high resolution, sitting on a park bench" --build-dynamic-shape
+```
+- Copy the .plan file at `./output/sd15_inpaint_runwayml` to serve on triton:
+```
+cp /home/ubuntu/TensorRT/output/sd15_inpaint_runwayml/engine/unet_inpaint.plan /home/ubuntu/sd_1.5/models/unet_inpaint/1/unet_inpaint.plan
+cp /home/ubuntu/TensorRT/output/sd15_inpaint_runwayml/engine/vae_encoder_inpaint.plan /home/ubuntu/sd_1.5/models/vae_encoder_inpaint/1/vae_encoder_inpaint.plan
+```

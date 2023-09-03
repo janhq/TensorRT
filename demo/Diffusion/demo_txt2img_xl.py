@@ -37,6 +37,7 @@ def parseArgs():
     parser.add_argument('--onnx-refiner-dir', default='onnx_xl_refiner', help="Directory for SDXL-Refiner ONNX models")
     parser.add_argument('--engine-base-dir', default='engine_xl_base', help="Directory for SDXL-Base TensorRT engines")
     parser.add_argument('--engine-refiner-dir', default='engine_xl_refiner', help="Directory for SDXL-Refiner TensorRT engines")
+    parser.add_argument('--with-refiner', action='store_true', help="Use refiner model")
 
     return parser.parse_args()
 
@@ -104,31 +105,39 @@ if __name__ == "__main__":
         return demo
 
     demo_base = init_pipeline(Txt2ImgXLPipeline, False, args.onnx_base_dir, args.engine_base_dir)
-    demo_refiner = init_pipeline(Img2ImgXLPipeline, True, args.onnx_refiner_dir, args.engine_refiner_dir)
-    max_device_memory = max(demo_base.calculateMaxDeviceMemory(), demo_refiner.calculateMaxDeviceMemory())
+    max_device_memory = demo_base.calculateMaxDeviceMemory()
+
+    if args.with_refiner:
+        demo_refiner = init_pipeline(Img2ImgXLPipeline, True, args.onnx_refiner_dir, args.engine_refiner_dir)
+        max_device_memory = max(max_device_memory, demo_refiner.calculateMaxDeviceMemory())
+
     _, shared_device_memory = cudart.cudaMalloc(max_device_memory)
     demo_base.activateEngines(shared_device_memory)
-    demo_refiner.activateEngines(shared_device_memory)
     demo_base.loadResources(image_height, image_width, batch_size, args.seed)
-    demo_refiner.loadResources(image_height, image_width, batch_size, args.seed)
 
-    def run_sd_xl_inference(warmup=False, verbose=False):
+    if args.with_refiner:
+        demo_refiner.activateEngines(shared_device_memory)
+        demo_refiner.loadResources(image_height, image_width, batch_size, args.seed)
+
+    def run_sd_xl_inference(warmup=False, verbose=False, run_refiner=True):
         images, time_base = demo_base.infer(prompt, negative_prompt, image_height, image_width, warmup=warmup, verbose=verbose, seed=args.seed, return_type="latents")
+        if not run_refiner:
+            return images, time_base
         images, time_refiner = demo_refiner.infer(prompt, negative_prompt, images, image_height, image_width, warmup=warmup, verbose=verbose, seed=args.seed)
         return images, time_base + time_refiner
 
     if args.use_cuda_graph:
         # inference once to get cuda graph
-        images, _ = run_sd_xl_inference(warmup=True, verbose=False)
+        images, _ = run_sd_xl_inference(warmup=True, verbose=False, run_refiner=args.with_refiner)
 
     print("[I] Warming up ..")
     for _ in range(args.num_warmup_runs):
-        images, _ = run_sd_xl_inference(warmup=True, verbose=False)
+        images, _ = run_sd_xl_inference(warmup=True, verbose=False, run_refiner=args.with_refiner)
 
     print("[I] Running StableDiffusion pipeline")
     if args.nvtx_profile:
         cudart.cudaProfilerStart()
-    images, pipeline_time = run_sd_xl_inference(warmup=False, verbose=args.verbose)
+    images, pipeline_time = run_sd_xl_inference(warmup=False, verbose=args.verbose, run_refiner=args.with_refiner)
     if args.nvtx_profile:
         cudart.cudaProfilerStop()
 
@@ -137,4 +146,5 @@ if __name__ == "__main__":
     print('|------------|--------------|')
 
     demo_base.teardown()
-    demo_refiner.teardown()
+    if args.with_refiner:
+        demo_refiner.teardown()

@@ -11,4 +11,4 @@ RUN pip3 install -r /tmp/requirements.txt && \
 
 COPY . /workspace/TensorRT_SDXL/
 ENV TRT_OSSPATH=/workspace/TensorRT_SDXL
-WORKDIR ${TRT_OSSPATH}
+WORKDIR ${TRT_OSSPATH}/demo/Diffusion/

@@ -1,7 +1,7 @@
 # For SDXL
 - Build docker image to convert sdxl to tensorrt:
 ```
-DOCKER_BUILDKIT=1 docker build -t janresearch.azurecr.io/sdxl_converter:tr23.04-trt8.6.1-nvidiaa6000 -f sdxl.Dockerfile .
+DOCKER_BUILDKIT=1 docker build -t janresearch.azurecr.io/sdxl_converter:tr23.04-trt8.6.1 -f sdxl.Dockerfile .
 ```
 - Run the image up and convert sdxl to tensorrt:
 ```
@@ -9,14 +9,12 @@ docker run --gpus device=1 \
            --ipc=host \
            --ulimit memlock=-1 \
            --ulimit stack=67108864 \
-           -v $(pwd)/weights:/workspace/TensorRT_SDXL/weights \
            -v $(pwd)/output/sdxl/engine_xl_base:/workspace/TensorRT_SDXL/demo/Diffusion/engine_xl_base/ \
            -v $(pwd)/output/sdxl/engine_xl_refiner:/workspace/TensorRT_SDXL/demo/Diffusion/engine_xl_refiner/ \
            -v $(pwd)/output/sdxl/onnx_xl_base:/workspace/TensorRT_SDXL/demo/Diffusion/onnx_xl_base/ \
            -v $(pwd)/output/sdxl/onnx_xl_refiner:/workspace/TensorRT_SDXL/demo/Diffusion/onnx_xl_refiner/ \
            -v $(pwd)/output/sdxl/output:/workspace/TensorRT_SDXL/demo/Diffusion/output \
-           -it --rm janresearch.azurecr.io/sdxl_converter:tr23.04-trt8.6.1-nvidiaa6000
-cd demo/Diffusion/
+           -it --rm janresearch.azurecr.io/sdxl_converter:tr23.04-trt8.6.1
 python3 demo_txt2img_xl.py --hf-token=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 -v "a beautiful photograph of Mt. Fuji during cherry blossom" --repeat-prompt 4 --build-dynamic-shape
 ```
 - Copy the .plan file at `./output/sdxl` to serve on triton
@@ -45,8 +43,7 @@ docker run --gpus device=1 \
            -v $(pwd)/output/sb15_dreamshaper_7/engine:/workspace/TensorRT_SDXL/demo/Diffusion/engine \
            -v $(pwd)/output/sb15_dreamshaper_7/onnx:/workspace/TensorRT_SDXL/demo/Diffusion/onnx \
            -v $(pwd)/output/sb15_dreamshaper_7/output:/workspace/TensorRT_SDXL/demo/Diffusion/output \
-           -it --rm janresearch.azurecr.io/sdxl_converter:tr23.04-trt8.6.1-nvidiaa6000
-cd demo/Diffusion/
+           -it --rm janresearch.azurecr.io/sdxl_converter:tr23.04-trt8.6.1
 python3 demo_txt2img.py --version 1.5-dreamshaper_7 --hf-token=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 -v --repeat-prompt 4 "a beautiful photograph of Mt. Fuji during cherry blossom" --build-dynamic-shape
 ```
 - Copy the .plan file at `./output/sb15_dreamshaper_7` to serve on triton:
@@ -66,8 +63,7 @@ docker run --gpus device=1 \
            -v $(pwd)/output/sb15_openjourney_V4/engine:/workspace/TensorRT_SDXL/demo/Diffusion/engine \
            -v $(pwd)/output/sb15_openjourney_V4/onnx:/workspace/TensorRT_SDXL/demo/Diffusion/onnx \
            -v $(pwd)/output/sb15_openjourney_V4/output:/workspace/TensorRT_SDXL/demo/Diffusion/output \
-           -it --rm janresearch.azurecr.io/sdxl_converter:tr23.04-trt8.6.1-nvidiaa6000
-cd demo/Diffusion/
+           -it --rm janresearch.azurecr.io/sdxl_converter:tr23.04-trt8.6.1
 python3 demo_txt2img.py --version 1.5-openjourney_V4 --hf-token=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 -v --repeat-prompt 4 "a beautiful photograph of Mt. Fuji during cherry blossom" --build-dynamic-shape
 ```
 - Copy the .plan file at `./output/sb15_openjourney_V4` to serve on triton:
@@ -86,8 +82,7 @@ docker run --gpus device=1 \
            -v $(pwd)/output/sb15_meinamix_meinaV11/engine:/workspace/TensorRT_SDXL/demo/Diffusion/engine \
            -v $(pwd)/output/sb15_meinamix_meinaV11/onnx:/workspace/TensorRT_SDXL/demo/Diffusion/onnx \
            -v $(pwd)/output/sb15_meinamix_meinaV11/output:/workspace/TensorRT_SDXL/demo/Diffusion/output \
-           -it --rm janresearch.azurecr.io/sdxl_converter:tr23.04-trt8.6.1-nvidiaa6000
-cd demo/Diffusion/
+           -it --rm janresearch.azurecr.io/sdxl_converter:tr23.04-trt8.6.1
 python3 demo_txt2img.py --version 1.5-meinamix_meinaV11 --hf-token=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 -v --repeat-prompt 4 "a beautiful photograph of Mt. Fuji during cherry blossom" --build-dynamic-shape
 ```
 - Copy the .plan file at `./output/sb15_meinamix_meinaV11` to serve on triton:
@@ -107,8 +102,7 @@ docker run --gpus device=1 \
            -v $(pwd)/output/sb15_dreamshaper_7_controlnet_canny/engine:/workspace/TensorRT_SDXL/demo/Diffusion/engine \
            -v $(pwd)/output/sb15_dreamshaper_7_controlnet_canny/onnx:/workspace/TensorRT_SDXL/demo/Diffusion/onnx \
            -v $(pwd)/output/sb15_dreamshaper_7_controlnet_canny/output:/workspace/TensorRT_SDXL/demo/Diffusion/output \
-           -it --rm janresearch.azurecr.io/sdxl_converter:tr23.04-trt8.6.1-nvidiaa6000
-cd demo/Diffusion/
+           -it --rm janresearch.azurecr.io/sdxl_converter:tr23.04-trt8.6.1
 python3 demo_controlnet.py --version 1.5-dreamshaper_7 --hf-token=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 -v --controlnet-type canny --controlnet-scale 1.0 --repeat-prompt 4 "a beautiful photograph of Mt. Fuji during cherry blossom" --build-dynamic-shape
 ```
 - Copy the .plan file at `./output/sb15_dreamshaper_7_controlnet_canny` to serve on triton:
@@ -126,8 +120,7 @@ docker run --gpus device=1 \
            -v $(pwd)/output/sb15_dreamshaper_7_controlnet_depth/engine:/workspace/TensorRT_SDXL/demo/Diffusion/engine \
            -v $(pwd)/output/sb15_dreamshaper_7_controlnet_depth/onnx:/workspace/TensorRT_SDXL/demo/Diffusion/onnx \
            -v $(pwd)/output/sb15_dreamshaper_7_controlnet_depth/output:/workspace/TensorRT_SDXL/demo/Diffusion/output \
-           -it --rm janresearch.azurecr.io/sdxl_converter:tr23.04-trt8.6.1-nvidiaa6000
-cd demo/Diffusion/
+           -it --rm janresearch.azurecr.io/sdxl_converter:tr23.04-trt8.6.1
 python3 demo_controlnet.py --version 1.5-dreamshaper_7 --hf-token=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 -v --controlnet-type depth --controlnet-scale 1.0 --repeat-prompt 4 "a beautiful photograph of Mt. Fuji during cherry blossom" --build-dynamic-shape
 ```
 - Copy the .plan file at `./output/sb15_dreamshaper_7_controlnet_depth` to serve on triton:

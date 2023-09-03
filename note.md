@@ -139,8 +139,7 @@ docker run --gpus device=0 \
            -v $(pwd)/output/sd15_inpaint_runwayml/engine:/workspace/TensorRT_SDXL/demo/Diffusion/engine \
            -v $(pwd)/output/sd15_inpaint_runwayml/onnx:/workspace/TensorRT_SDXL/demo/Diffusion/onnx \
            -v $(pwd)/output/sd15_inpaint_runwayml/output:/workspace/TensorRT_SDXL/demo/Diffusion/output \
-           -it --rm janresearch.azurecr.io/sdxl_converter:tr23.04-trt8.6.1-nvidiaa6000
-cd demo/Diffusion/
+           -it --rm janresearch.azurecr.io/sdxl_converter:tr23.04-trt8.6.1
 python3 demo_inpaint.py --version 1.5 --hf-token=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 -v --repeat-prompt 4 "Face of a yellow cat, high resolution, sitting on a park bench" --build-dynamic-shape
 ```
 - Copy the .plan file at `./output/sd15_inpaint_runwayml` to serve on triton:
